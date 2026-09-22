@@ -1,0 +1,35 @@
+# ==============================
+# DevFlow Backend - Maven
+# ==============================
+devFlow/target/
+
+# ==============================
+# DevFlow Frontend
+# ==============================
+devFlow-frontend/Devflow-automate/node_modules/
+devFlow-frontend/Devflow-automate/dist/
+
+# ==============================
+# Local / Secret Configuration
+# ==============================
+devFlow/src/main/resources/application-local.properties
+.env
+*.env
+
+# ==============================
+# IDE
+# ==============================
+.idea/
+.vscode/
+*.iml
+
+# ==============================
+# Logs
+# ==============================
+*.log
+
+# ==============================
+# OS Files
+# ==============================
+.DS_Store
+Thumbs.db
