@@ -24,6 +24,23 @@ The application provides:
 - Productivity notifications
 - User profile management
 - Responsive dashboard and workspace UI
+  ## Screenshots
+
+### Login
+
+![DevFlow Login](screenshots/login.png)
+
+### Dashboard
+
+![DevFlow Dashboard](screenshots/dashboard.png)
+
+### Projects
+
+![DevFlow Projects](screenshots/projects.png)
+
+### Work History
+
+![DevFlow Work History](screenshots/work-history.png)
 
 ## Tech Stack
 
