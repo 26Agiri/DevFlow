@@ -28,19 +28,19 @@ The application provides:
 
 ### Login
 
-![DevFlow Login](screenshots/login.png)
+![DevFlow Login](screenshot/login.png)
 
 ### Dashboard
 
-![DevFlow Dashboard](screenshots/dashboard.png)
+![DevFlow Dashboard](screenshot/dashboard.png)
 
 ### Projects
 
-![DevFlow Projects](screenshots/projects.png)
+![DevFlow Projects](screenshot/projects.png)
 
 ### Work History
 
-![DevFlow Work History](screenshots/work-history.png)
+![DevFlow Work History](screenshot/work-history.png)
 
 ## Tech Stack
 
