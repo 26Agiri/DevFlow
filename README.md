@@ -36,11 +36,11 @@ The application provides:
 
 ### Projects
 
-![DevFlow Projects](screenshot/projects.png)
+![DevFlow Projects](screenshot/project.png)
 
 ### Work History
 
-![DevFlow Work History](screenshot/work-history.png)
+![DevFlow Work History](screenshot/workHistory.png)
 
 ## Tech Stack
 
