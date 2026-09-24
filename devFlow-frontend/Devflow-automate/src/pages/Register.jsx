@@ -27,10 +27,10 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+console.log("REGISTER BUTTON / FORM SUBMITTED");
     setError("");
     setSuccess("");
-
+    
     if (!name.trim()) {
       setError("Name is required.");
       return;

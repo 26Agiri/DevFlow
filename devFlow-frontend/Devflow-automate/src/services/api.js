@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: "https://devflow-backend-9ie3.onrender.com/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -9,9 +9,6 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-
-    // Public authentication endpoints should not
-    // receive an existing JWT token.
     const publicEndpoints = [
       "/auth/login",
       "/auth/register",
@@ -19,6 +16,7 @@ api.interceptors.request.use(
     ];
 
     if (publicEndpoints.includes(config.url)) {
+      console.log("Public API request:", config.method, config.url);
       return config;
     }
 
@@ -37,23 +35,28 @@ api.interceptors.request.use(
 
     return config;
   },
-
   (error) => Promise.reject(error)
 );
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(
+      "API response:",
+      response.status,
+      response.config.url
+    );
 
+    return response;
+  },
   (error) => {
-
     console.error(
       "API error:",
       error.response?.status,
-      error.config?.url
+      error.config?.url,
+      error.response?.data
     );
 
     if (error.response?.status === 401) {
-
       localStorage.removeItem("token");
 
       if (window.location.pathname !== "/login") {

@@ -28,26 +28,36 @@ public class AuthService {
         this.workSessionService = workSessionService;
     }
 
-  public LoginResponse login(LoginRequest request) {
-    User user = userRepository.findByEmail(request.email())
-            .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+    public LoginResponse login(LoginRequest request) {
 
-    boolean passwordMatches =
-            passwordEncoder.matches(request.password(), user.getPassword());
+        String email = request.email().trim().toLowerCase();
 
-    if (!passwordMatches) {
-        throw new IllegalArgumentException("Invalid email or password");
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Invalid email or password"
+                ));
+
+        boolean passwordMatches =
+                passwordEncoder.matches(
+                        request.password(),
+                        user.getPassword()
+                );
+
+        if (!passwordMatches) {
+            throw new IllegalArgumentException(
+                    "Invalid email or password"
+            );
+        }
+
+        boolean heartbeatTimeout =
+                workSessionService.hadHeartbeatTimeout(user.getEmail());
+
+        workSessionService.startSessionIfNotActive(user.getEmail());
+
+        String token = jwtService.generateToken(user.getEmail());
+
+        return new LoginResponse(token, heartbeatTimeout);
     }
-
-    boolean heartbeatTimeout =
-            workSessionService.hadHeartbeatTimeout(user.getEmail());
-
-    workSessionService.startSessionIfNotActive(user.getEmail());
-
-    String token = jwtService.generateToken(user.getEmail());
-
-    return new LoginResponse(token, heartbeatTimeout);
-}
 
     public User register(
             String name,
