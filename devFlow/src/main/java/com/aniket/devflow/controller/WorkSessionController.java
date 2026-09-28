@@ -73,16 +73,18 @@ public class WorkSessionController {
         );
     }
 
-    @PostMapping("/heartbeat")
-    public ResponseEntity<WorkSession> heartbeat(
-            Authentication authentication
-    ) {
-        return ResponseEntity.ok(
-                workSessionService.updateHeartbeat(
-                        authentication.getName()
-                )
-        );
-    }
+  @PostMapping("/heartbeat")
+public ResponseEntity<Map<String, String>> heartbeat(
+        Authentication authentication
+) {
+    workSessionService.updateHeartbeat(
+            authentication.getName()
+    );
+
+    return ResponseEntity.ok(
+            Map.of("message", "Heartbeat updated successfully")
+    );
+}
 
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> getStatus(
