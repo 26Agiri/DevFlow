@@ -1,5 +1,11 @@
 package com.aniket.devflow.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.aniket.devflow.dto.CommentRequest;
 import com.aniket.devflow.dto.CommentResponse;
 import com.aniket.devflow.entity.Comment;
@@ -9,10 +15,6 @@ import com.aniket.devflow.exception.ResourceNotFoundException;
 import com.aniket.devflow.repository.CommentRepository;
 import com.aniket.devflow.repository.TaskRepository;
 import com.aniket.devflow.repository.UserRepository;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class CommentService {
@@ -30,7 +32,7 @@ public class CommentService {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
     }
-
+@Transactional
     public CommentResponse createComment(
             Long projectId,
             Long taskId,
@@ -59,7 +61,7 @@ public class CommentService {
 
         return mapToResponse(savedComment);
     }
-
+@Transactional(readOnly = true)
     public List<CommentResponse> getComments(
             Long projectId,
             Long taskId,
@@ -75,7 +77,7 @@ public class CommentService {
                 .map(this::mapToResponse)
                 .toList();
     }
-
+@Transactional
     public void deleteComment(
             Long projectId,
             Long taskId,
