@@ -9,6 +9,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
+
     const publicEndpoints = [
       "/auth/login",
       "/auth/register",
@@ -16,11 +17,16 @@ api.interceptors.request.use(
     ];
 
     if (publicEndpoints.includes(config.url)) {
-      console.log("Public API request:", config.method, config.url);
       return config;
     }
 
     const token = localStorage.getItem("token");
+
+    console.log(
+      "AUTH CHECK:",
+      config.url,
+      token ? "TOKEN EXISTS" : "NO TOKEN"
+    );
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -56,13 +62,12 @@ api.interceptors.response.use(
       error.response?.data
     );
 
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
-      }
-    }
+  if (error.response?.status === 401) {
+  console.warn(
+    "401 received, but keeping token for debugging:",
+    error.config?.url
+  );
+}
 
     return Promise.reject(error);
   }

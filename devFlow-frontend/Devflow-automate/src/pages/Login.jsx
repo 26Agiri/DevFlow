@@ -30,7 +30,18 @@ function Login() {
 
     console.log("Login successful:", data);
 
-    localStorage.setItem("token", data.token);
+   localStorage.setItem("token", data.token);
+
+console.log(
+  "TOKEN SAVED:",
+  !!data.token,
+  data.token ? data.token.substring(0, 20) + "..." : "NO TOKEN"
+);
+
+console.log(
+  "LOCAL STORAGE TOKEN:",
+  localStorage.getItem("token")
+);
 
     if (data.heartbeatTimeout) {
       setSessionWarning(

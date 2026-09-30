@@ -61,30 +61,55 @@ function TaskDetails() {
     loadTask();
   }, [projectId, taskId]);
 
-  useEffect(() => {
-    const loadComments = async () => {
-      try {
+/* =========================================================
+   LOAD COMMENTS + AUTO REFRESH
+========================================================= */
+
+useEffect(() => {
+  let isMounted = true;
+
+  const loadComments = async (showLoading = false) => {
+    try {
+      if (showLoading) {
         setLoadingComments(true);
+      }
 
-        const response = await api.get(
-          `/projects/${projectId}/tasks/${taskId}/comments`
-        );
+      const response = await api.get(
+        `/projects/${projectId}/tasks/${taskId}/comments`
+      );
 
+      if (isMounted) {
         setComments(response.data);
-      } catch (error) {
-        console.error("Comments error:", error);
+      }
+    } catch (error) {
+      console.error("Comments error:", error);
 
+      if (isMounted) {
         setError(
           error.response?.data?.message ||
             "Unable to load comments."
         );
-      } finally {
+      }
+    } finally {
+      if (isMounted && showLoading) {
         setLoadingComments(false);
       }
-    };
+    }
+  };
 
-    loadComments();
-  }, [projectId, taskId]);
+  // Load immediately when task opens
+  loadComments(true);
+
+  // Refresh comments every 5 seconds
+  const commentsTimer = setInterval(() => {
+    loadComments(false);
+  }, 5000);
+
+  return () => {
+    isMounted = false;
+    clearInterval(commentsTimer);
+  };
+}, [projectId, taskId]);
 
   const handleAddComment = async (e) => {
     e.preventDefault();
