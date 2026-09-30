@@ -1,5 +1,15 @@
 package com.aniket.devflow.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.aniket.devflow.dto.TaskRequest;
 import com.aniket.devflow.dto.TaskResponse;
 import com.aniket.devflow.dto.TaskStatusUpdateRequest;
@@ -13,13 +23,6 @@ import com.aniket.devflow.repository.ProjectRepository;
 import com.aniket.devflow.repository.TaskRepository;
 import com.aniket.devflow.repository.TaskSpecification;
 import com.aniket.devflow.repository.UserRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class TaskService {
@@ -33,18 +36,20 @@ public class TaskService {
             TaskRepository taskRepository,
             ProjectRepository projectRepository,
             UserRepository userRepository,
-            NotificationService notificationService) {
-
+            NotificationService notificationService
+    ) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
     }
 
+    @Transactional
     public TaskResponse createTask(
             Long projectId,
             TaskRequest request,
-            Long userId) {
+            Long userId
+    ) {
 
         Project project = projectRepository
                 .findByIdAndUserId(projectId, userId)
@@ -77,12 +82,14 @@ public class TaskService {
         return mapToResponse(savedTask);
     }
 
+    @Transactional(readOnly = true)
     public List<TaskResponse> getTasksByProject(
             Long projectId,
             Long userId,
             String status,
             String priority,
-            String search) {
+            String search
+    ) {
 
         projectRepository
                 .findByIdAndUserId(projectId, userId)
@@ -143,10 +150,12 @@ public class TaskService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public Page<TaskResponse> getTasksByProjectPaginated(
             Long projectId,
             Long userId,
-            Pageable pageable) {
+            Pageable pageable
+    ) {
 
         projectRepository
                 .findByIdAndUserId(projectId, userId)
@@ -158,10 +167,12 @@ public class TaskService {
                 .map(this::mapToResponse);
     }
 
+    @Transactional(readOnly = true)
     public TaskResponse getTaskById(
             Long projectId,
             Long taskId,
-            Long userId) {
+            Long userId
+    ) {
 
         projectRepository
                 .findByIdAndUserId(projectId, userId)
@@ -176,11 +187,13 @@ public class TaskService {
         return mapToResponse(task);
     }
 
+    @Transactional
     public TaskResponse updateTask(
             Long projectId,
             Long taskId,
             TaskRequest request,
-            Long userId) {
+            Long userId
+    ) {
 
         projectRepository
                 .findByIdAndUserId(projectId, userId)
@@ -217,10 +230,12 @@ public class TaskService {
         return mapToResponse(updatedTask);
     }
 
+    @Transactional
     public void deleteTask(
             Long projectId,
             Long taskId,
-            Long userId) {
+            Long userId
+    ) {
 
         projectRepository
                 .findByIdAndUserId(projectId, userId)
@@ -235,11 +250,13 @@ public class TaskService {
         taskRepository.delete(task);
     }
 
+    @Transactional
     public TaskResponse updateTaskStatus(
             Long projectId,
             Long taskId,
             TaskStatusUpdateRequest request,
-            Long userId) {
+            Long userId
+    ) {
 
         projectRepository
                 .findByIdAndUserId(projectId, userId)
@@ -275,13 +292,15 @@ public class TaskService {
         return mapToResponse(updatedTask);
     }
 
+    @Transactional(readOnly = true)
     public Page<TaskResponse> getFilteredTasks(
             Long projectId,
             Long userId,
             String status,
             String priority,
             String search,
-            Pageable pageable) {
+            Pageable pageable
+    ) {
 
         projectRepository
                 .findByIdAndUserId(projectId, userId)
@@ -379,6 +398,8 @@ public class TaskService {
                 assignedUser != null ? assignedUser.getEmail() : null
         );
     }
+
+    @Transactional(readOnly = true)
     public List<TaskResponse> getOverdueTasks(Long userId) {
 
         LocalDate today = LocalDate.now();
@@ -394,6 +415,7 @@ public class TaskService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<TaskResponse> getTasksDueToday(Long userId) {
 
         LocalDate today = LocalDate.now();
