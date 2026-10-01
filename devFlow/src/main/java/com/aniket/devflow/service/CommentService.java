@@ -1,6 +1,7 @@
 package com.aniket.devflow.service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -73,7 +74,7 @@ public CommentResponse createComment(
     // Create comment
     Comment comment = Comment.builder()
             .content(request.content())
-            .createdAt(LocalDateTime.now())
+            .createdAt(LocalDateTime.now(ZoneOffset.UTC))
             .task(task)
             .user(user)
             .build();
@@ -154,7 +155,7 @@ public CommentResponse createComment(
         return new CommentResponse(
                 comment.getId(),
                 comment.getContent(),
-                comment.getCreatedAt(),
+                comment.getCreatedAt().atOffset(ZoneOffset.UTC),
                 comment.getTask().getId(),
                 user.getId(),
                 user.getName(),

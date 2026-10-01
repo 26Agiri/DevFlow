@@ -1,11 +1,11 @@
 package com.aniket.devflow.dto;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record CommentResponse(
         Long id,
         String content,
-        LocalDateTime createdAt,
+        OffsetDateTime createdAt,
         Long taskId,
         Long userId,
         String userName,
