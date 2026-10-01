@@ -251,6 +251,29 @@ const handleStatusChange = async (e) => {
     );
   }
 };
+const formatCommentDate = (createdAt) => {
+  if (!createdAt) {
+    return "";
+  }
+
+  const value = String(createdAt);
+
+  // Backend currently returns LocalDateTime without timezone.
+  // Treat that value as UTC, then convert it to the browser's local timezone.
+  const hasTimezone =
+    value.endsWith("Z") ||
+    /[+-]\d{2}:\d{2}$/.test(value);
+
+  const date = new Date(
+    hasTimezone ? value : `${value}Z`
+  );
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString();
+};
 
   const getStatusIcon = (status, size = 18) => {
     if (status === "DONE") {
@@ -668,9 +691,7 @@ const handleStatusChange = async (e) => {
 
                         {item.createdAt && (
                           <span className="text-[10px] text-slate-700">
-                            {new Date(
-                              item.createdAt
-                            ).toLocaleString()}
+                          {new Date(item.createdAt).toLocaleString()}
                           </span>
                         )}
                       </div>
