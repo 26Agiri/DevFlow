@@ -97,7 +97,7 @@ useEffect(() => {
     }
   };
 
-  // Load immediately when task opens
+  // Initial load
   loadComments(true);
 
   // Refresh comments every 5 seconds
