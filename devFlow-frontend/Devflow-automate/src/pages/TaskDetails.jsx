@@ -220,6 +220,37 @@ useEffect(() => {
       );
     }
   };
+  /* =========================================================
+   UPDATE TASK STATUS
+========================================================= */
+
+const handleStatusChange = async (e) => {
+  const newStatus = e.target.value;
+
+  if (!newStatus || newStatus === task.status) {
+    return;
+  }
+
+  try {
+    setError("");
+
+    const response = await api.put(
+      `/projects/${projectId}/tasks/${taskId}/status`,
+      {
+        status: newStatus,
+      }
+    );
+
+    setTask(response.data);
+  } catch (error) {
+    console.error("Status update error:", error);
+
+    setError(
+      error.response?.data?.message ||
+        "Unable to update task status."
+    );
+  }
+};
 
   const getStatusIcon = (status, size = 18) => {
     if (status === "DONE") {
@@ -394,8 +425,29 @@ useEffect(() => {
                 <p className="mt-5 max-w-3xl whitespace-pre-wrap text-sm leading-7 text-slate-500">
                   {task.description ||
                     "No description provided."}
-                </p>
+                </p> {/* STATUS CONTROL */}
 
+<div className="mt-5 flex items-center gap-3">
+  <label
+    htmlFor="task-status"
+    className="text-xs text-slate-600"
+  >
+    Update Status
+  </label>
+
+  <select
+    id="task-status"
+    value={task.status}
+    onChange={handleStatusChange}
+    className="rounded-lg border border-white/[0.08] bg-[#080b12] px-3 py-2 text-xs text-slate-300 outline-none transition focus:border-blue-500/50"
+  >
+    <option value="TODO">TODO</option>
+    <option value="IN_PROGRESS">
+      IN PROGRESS
+    </option>
+    <option value="DONE">DONE</option>
+  </select>
+</div>
                 {/* Metadata */}
                 <div className="mt-6 flex flex-wrap gap-2">
                   <div className="inline-flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.018] px-3 py-2 text-[11px] text-slate-500">
