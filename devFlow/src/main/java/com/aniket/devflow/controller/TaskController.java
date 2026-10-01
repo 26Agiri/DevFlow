@@ -30,14 +30,14 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/projects/{projectId}/tasks")
 public class TaskController {
 
-    private final TaskService taskService;
-    private final UserService userService;
-    private final WorkspaceAccessService workspaceAccessService;
+private final TaskService taskService;
+ private final UserService userService;
+private final WorkspaceAccessService workspaceAccessService;
 
-    public TaskController(
-            TaskService taskService,
-            UserService userService,
-            WorkspaceAccessService workspaceAccessService
+ public TaskController(
+        TaskService taskService,
+        UserService userService,
+        WorkspaceAccessService workspaceAccessService
     ) {
         this.taskService = taskService;
         this.userService = userService;
@@ -46,9 +46,9 @@ public class TaskController {
 
     @PostMapping
     public ResponseEntity<TaskResponse> createTask(
-            @PathVariable Long projectId,
-            @Valid @RequestBody TaskRequest request,
-            Authentication authentication
+        @PathVariable Long projectId,
+        @Valid @RequestBody TaskRequest request,
+        Authentication authentication
     ) {
         String email = authentication.getName();
 
@@ -67,11 +67,11 @@ public class TaskController {
 
     @GetMapping
     public ResponseEntity<List<TaskResponse>> getTasks(
-            @PathVariable Long projectId,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String priority,
-            @RequestParam(required = false) String search,
-            Authentication authentication
+        @PathVariable Long projectId,
+        @RequestParam(required = false) String status,
+        @RequestParam(required = false) String priority,
+        @RequestParam(required = false) String search,
+        Authentication authentication
     ) {
         String email = authentication.getName();
 
@@ -92,9 +92,9 @@ public class TaskController {
 
     @GetMapping("/{taskId}")
     public ResponseEntity<TaskResponse> getTaskById(
-            @PathVariable Long projectId,
-            @PathVariable Long taskId,
-            Authentication authentication
+        @PathVariable Long projectId,
+        @PathVariable Long taskId,
+        Authentication authentication
     ) {
         String email = authentication.getName();
 
@@ -113,10 +113,10 @@ public class TaskController {
 
     @PutMapping("/{taskId}")
     public ResponseEntity<TaskResponse> updateTask(
-            @PathVariable Long projectId,
-            @PathVariable Long taskId,
-            @Valid @RequestBody TaskRequest request,
-            Authentication authentication
+        @PathVariable Long projectId,
+        @PathVariable Long taskId,
+         @Valid @RequestBody TaskRequest request,
+         Authentication authentication
     ) {
         String email = authentication.getName();
 

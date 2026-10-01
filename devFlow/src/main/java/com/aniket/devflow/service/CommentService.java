@@ -32,44 +32,88 @@ public class CommentService {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
     }
-@Transactional
-    public CommentResponse createComment(
-            Long projectId,
-            Long taskId,
-            CommentRequest request,
-            Long userId) {
+   @Transactional
+public CommentResponse createComment(
+        Long projectId,
+        Long taskId,
+        CommentRequest request,
+        Long userId) {
 
-        Task task = taskRepository.findByIdAndProjectId(
-                        taskId,
-                        projectId
-                )
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Task not found"));
+    // Find the task inside the project
+    Task task = taskRepository
+            .findByIdAndProjectId(taskId, projectId)
+            .orElseThrow(() ->
+                    new ResourceNotFoundException("Task not found")
+            );
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("User not found"));
+    // Check project owner
+    boolean isOwner =
+            task.getProject()
+                    .getUser()
+                    .getId()
+                    .equals(userId);
 
-        Comment comment = Comment.builder()
-                .content(request.content())
-                .createdAt(LocalDateTime.now())
-                .task(task)
-                .user(user)
-                .build();
+    // Check assigned employee
+    User assignedUser = task.getAssignedTo();
 
-        Comment savedComment = commentRepository.save(comment);
+    boolean isAssignedEmployee =
+            assignedUser != null
+                    && assignedUser.getId().equals(userId);
 
-        return mapToResponse(savedComment);
+    // Only owner or assigned employee can add comments
+    if (!isOwner && !isAssignedEmployee) {
+        throw new ResourceNotFoundException("Task not found");
     }
-@Transactional(readOnly = true)
+
+    // Get logged-in user
+    User user = userRepository.findById(userId)
+            .orElseThrow(() ->
+                    new ResourceNotFoundException("User not found"));
+
+    // Create comment
+    Comment comment = Comment.builder()
+            .content(request.content())
+            .createdAt(LocalDateTime.now())
+            .task(task)
+            .user(user)
+            .build();
+
+    Comment savedComment = commentRepository.save(comment);
+
+    return mapToResponse(savedComment);
+}
+    @Transactional(readOnly = true)
     public List<CommentResponse> getComments(
             Long projectId,
             Long taskId,
-            Long userId) {
+            Long userId
+    ) {
 
-        taskRepository.findByIdAndProjectId(taskId, projectId)
+        // Find the task inside the project
+        Task task = taskRepository
+                .findByIdAndProjectId(taskId, projectId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Task not found"));
+                        new ResourceNotFoundException("Task not found")
+                );
+
+        // Project owner
+        boolean isOwner =
+                task.getProject()
+                        .getUser()
+                        .getId()
+                        .equals(userId);
+
+        // Employee assigned to this task
+        User assignedUser = task.getAssignedTo();
+
+        boolean isAssignedEmployee =
+                assignedUser != null
+                        && assignedUser.getId().equals(userId);
+
+        // Only owner or assigned employee can read comments
+        if (!isOwner && !isAssignedEmployee) {
+            throw new ResourceNotFoundException("Task not found");
+        }
 
         return commentRepository
                 .findByTaskIdOrderByCreatedAtAsc(taskId)
@@ -77,7 +121,8 @@ public class CommentService {
                 .map(this::mapToResponse)
                 .toList();
     }
-@Transactional
+
+    @Transactional
     public void deleteComment(
             Long projectId,
             Long taskId,
@@ -116,6 +161,7 @@ public class CommentService {
                 user.getEmail()
         );
     }
+    @Transactional
     public CommentResponse updateComment(
             Long projectId,
             Long taskId,

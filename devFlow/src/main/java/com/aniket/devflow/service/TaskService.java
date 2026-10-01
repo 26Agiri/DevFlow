@@ -82,73 +82,130 @@ public class TaskService {
         return mapToResponse(savedTask);
     }
 
-    @Transactional(readOnly = true)
-    public List<TaskResponse> getTasksByProject(
-            Long projectId,
-            Long userId,
-            String status,
-            String priority,
-            String search
-    ) {
+  @Transactional(readOnly = true)
+public List<TaskResponse> getTasksByProject(
+        Long projectId,
+        Long userId,
+        String status,
+        String priority,
+        String search
+) {
 
-        projectRepository
-                .findByIdAndUserId(projectId, userId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Project not found"));
+    /*
+     * OWNER:
+     * Can see all tasks in the project.
+     *
+     * ASSIGNED EMPLOYEE:
+     * Can see only tasks assigned to them.
+     */
+    boolean isOwner = projectRepository
+            .findByIdAndUserId(projectId, userId)
+            .isPresent();
 
-        List<Task> tasks;
+    boolean isAssignedEmployee = taskRepository
+            .existsByProjectIdAndAssignedToId(projectId, userId);
 
-        if (status != null && !status.isBlank()) {
+    if (!isOwner && !isAssignedEmployee) {
+        throw new ResourceNotFoundException("Project not found");
+    }
 
-            TaskStatus taskStatus;
+    List<Task> tasks;
 
-            try {
-                taskStatus = TaskStatus.valueOf(status.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException(
-                        "Invalid status. Allowed values: TODO, IN_PROGRESS, DONE"
-                );
-            }
+    // ==========================================
+    // STATUS FILTER
+    // ==========================================
+    if (status != null && !status.isBlank()) {
 
+        TaskStatus taskStatus;
+
+        try {
+            taskStatus = TaskStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                    "Invalid status. Allowed values: TODO, IN_PROGRESS, DONE"
+            );
+        }
+
+        if (isOwner) {
             tasks = taskRepository.findByProjectIdAndStatus(
                     projectId,
                     taskStatus
             );
+        } else {
+            tasks = taskRepository.findByProjectIdAndAssignedToIdAndStatus(
+                    projectId,
+                    userId,
+                    taskStatus
+            );
+        }
 
-        } else if (priority != null && !priority.isBlank()) {
+    // ==========================================
+    // PRIORITY FILTER
+    // ==========================================
+    } else if (priority != null && !priority.isBlank()) {
 
-            TaskPriority taskPriority;
+        TaskPriority taskPriority;
 
-            try {
-                taskPriority = TaskPriority.valueOf(priority.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException(
-                        "Invalid priority. Allowed values: LOW, MEDIUM, HIGH"
-                );
-            }
+        try {
+            taskPriority = TaskPriority.valueOf(priority.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                    "Invalid priority. Allowed values: LOW, MEDIUM, HIGH"
+            );
+        }
 
+        if (isOwner) {
             tasks = taskRepository.findByProjectIdAndPriority(
                     projectId,
                     taskPriority
             );
+        } else {
+            tasks = taskRepository.findByProjectIdAndAssignedToIdAndPriority(
+                    projectId,
+                    userId,
+                    taskPriority
+            );
+        }
 
-        } else if (search != null && !search.isBlank()) {
+    // ==========================================
+    // SEARCH FILTER
+    // ==========================================
+    } else if (search != null && !search.isBlank()) {
 
+        if (isOwner) {
             tasks = taskRepository
                     .findByProjectIdAndTitleContainingIgnoreCase(
                             projectId,
                             search
                     );
-
         } else {
-
-            tasks = taskRepository.findByProjectId(projectId);
+            tasks = taskRepository
+                    .findByProjectIdAndAssignedToIdAndTitleContainingIgnoreCase(
+                            projectId,
+                            userId,
+                            search
+                    );
         }
 
-        return tasks.stream()
-                .map(this::mapToResponse)
-                .toList();
+    // ==========================================
+    // ALL TASKS
+    // ==========================================
+    } else {
+
+        if (isOwner) {
+            tasks = taskRepository.findByProjectId(projectId);
+        } else {
+            tasks = taskRepository.findByProjectIdAndAssignedToId(
+                    projectId,
+                    userId
+            );
+        }
     }
+
+    return tasks.stream()
+            .map(this::mapToResponse)
+            .toList();
+}
 
     @Transactional(readOnly = true)
     public Page<TaskResponse> getTasksByProjectPaginated(
@@ -166,26 +223,43 @@ public class TaskService {
                 .findByProjectId(projectId, pageable)
                 .map(this::mapToResponse);
     }
+@Transactional(readOnly = true)
+public TaskResponse getTaskById(
+        Long projectId,
+        Long taskId,
+        Long userId
+) {
 
-    @Transactional(readOnly = true)
-    public TaskResponse getTaskById(
-            Long projectId,
-            Long taskId,
-            Long userId
-    ) {
+    // Check whether the logged-in user is the project owner
+    boolean isOwner = projectRepository
+            .findByIdAndUserId(projectId, userId)
+            .isPresent();
 
-        projectRepository
-                .findByIdAndUserId(projectId, userId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Project not found"));
+    Task task;
 
-        Task task = taskRepository
+    if (isOwner) {
+        // Owner can open any task in the project
+        task = taskRepository
                 .findByIdAndProjectId(taskId, projectId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Task not found"));
-
-        return mapToResponse(task);
+                        new ResourceNotFoundException("Task not found")
+                );
+    } else {
+        // Employee can open only their assigned task
+        task = taskRepository
+                .findByIdAndProjectIdAndAssignedToId(
+                        taskId,
+                        projectId,
+                        userId
+                )
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Task not found")
+                );
     }
+
+    return mapToResponse(task);
+}
+  
 
     @Transactional
     public TaskResponse updateTask(
@@ -250,47 +324,67 @@ public class TaskService {
         taskRepository.delete(task);
     }
 
-    @Transactional
-    public TaskResponse updateTaskStatus(
-            Long projectId,
-            Long taskId,
-            TaskStatusUpdateRequest request,
-            Long userId
-    ) {
+  @Transactional
+public TaskResponse updateTaskStatus(
+        Long projectId,
+        Long taskId,
+        TaskStatusUpdateRequest request,
+        Long userId
+) {
 
-        projectRepository
-                .findByIdAndUserId(projectId, userId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Project not found"));
+    // Check whether the logged-in user is the project owner
+    boolean isOwner = projectRepository
+            .findByIdAndUserId(projectId, userId)
+            .isPresent();
 
-        Task task = taskRepository
+    Task task;
+
+    if (isOwner) {
+        // Project owner can update any task
+        task = taskRepository
                 .findByIdAndProjectId(taskId, projectId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Task not found"));
-
-        TaskStatus oldStatus = task.getStatus();
-
-        task.setStatus(request.status());
-
-        Task updatedTask = taskRepository.save(task);
-
-        if (oldStatus != request.status()) {
-
-            User assignedUser = task.getAssignedTo();
-
-            if (assignedUser != null) {
-                notificationService.createNotification(
-                        assignedUser.getId(),
-                        "Task status changed: "
-                                + updatedTask.getTitle()
-                                + " → "
-                                + updatedTask.getStatus()
+                        new ResourceNotFoundException("Task not found")
                 );
-            }
-        }
-
-        return mapToResponse(updatedTask);
+    } else {
+        // Assigned employee can update only their assigned task
+        task = taskRepository
+                .findByIdAndProjectIdAndAssignedToId(
+                        taskId,
+                        projectId,
+                        userId
+                )
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Task not found")
+                );
     }
+
+    TaskStatus oldStatus = task.getStatus();
+
+    task.setStatus(request.status());
+
+    Task updatedTask = taskRepository.save(task);
+
+    // Notify the assigned employee when the status changes
+    if (oldStatus != request.status()) {
+
+        User assignedUser = task.getAssignedTo();
+
+        if (assignedUser != null &&
+                !assignedUser.getId().equals(userId)) {
+
+            notificationService.createNotification(
+                    assignedUser.getId(),
+                    "Task status changed: "
+                            + updatedTask.getTitle()
+                            + " → "
+                            + updatedTask.getStatus()
+            );
+        }
+    }
+
+    return mapToResponse(updatedTask);
+}
 
     @Transactional(readOnly = true)
     public Page<TaskResponse> getFilteredTasks(
