@@ -33,54 +33,36 @@ public class ProjectController {
     private final UserService userService;
     private final WorkspaceAccessService workspaceAccessService;
 
-    public ProjectController(
-            ProjectService projectService,
-            UserService userService,
-            WorkspaceAccessService workspaceAccessService
-    ) {
+    public ProjectController(ProjectService projectService, UserService userService, WorkspaceAccessService workspaceAccessService) {
         this.projectService = projectService;
         this.userService = userService;
         this.workspaceAccessService = workspaceAccessService;
     }
 
     @PostMapping
-    public ResponseEntity<ProjectResponse> createProject(
-            @Valid @RequestBody ProjectRequest request,
-            Authentication authentication
-    ) {
+    public ResponseEntity<ProjectResponse> createProject(@Valid @RequestBody ProjectRequest request, Authentication authentication) {
         String email = authentication.getName();
-
         workspaceAccessService.requireActiveSession(email);
-
         User user = userService.findUserByEmail(email);
 
-        Project project = projectService.createProject(
-                request.name(),
-                request.description(),
-                user.getId()
-        );
+        Project project = projectService.createProject(request.name(), request.description(), user.getId());
 
         ProjectResponse response = new ProjectResponse(
                 project.getId(),
                 project.getName(),
                 project.getDescription(),
                 project.getStatus(),
-                project.getCreatedAt()
+                project.getCreatedAt(),
+                true
         );
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping
-    public ResponseEntity<List<ProjectResponse>> getMyProjects(
-            Authentication authentication
-    ) {
+    public ResponseEntity<List<ProjectResponse>> getMyProjects(Authentication authentication) {
         String email = authentication.getName();
-
         workspaceAccessService.requireActiveSession(email);
-
         User user = userService.findUserByEmail(email);
 
         List<ProjectResponse> responses =
@@ -91,7 +73,8 @@ public class ProjectController {
                                 project.getName(),
                                 project.getDescription(),
                                 project.getStatus(),
-                                project.getCreatedAt()
+                                project.getCreatedAt(),
+                                project.getUser().getId().equals(user.getId())
                         ))
                         .toList();
 
@@ -99,23 +82,13 @@ public class ProjectController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProjectResponse> updateProject(
-            @PathVariable Long id,
-            @Valid @RequestBody ProjectUpdateRequest request,
-            Authentication authentication
-    ) {
+    public ResponseEntity<ProjectResponse> updateProject(@PathVariable Long id, @Valid @RequestBody ProjectUpdateRequest request, Authentication authentication) {
         String email = authentication.getName();
-
         workspaceAccessService.requireActiveSession(email);
-
         User user = userService.findUserByEmail(email);
 
         Project project = projectService.updateProject(
-                id,
-                request.name(),
-                request.description(),
-                request.status(),
-                user.getId()
+                id, request.name(), request.description(), request.status(), user.getId()
         );
 
         ProjectResponse response = new ProjectResponse(
@@ -123,53 +96,37 @@ public class ProjectController {
                 project.getName(),
                 project.getDescription(),
                 project.getStatus(),
-                project.getCreatedAt()
+                project.getCreatedAt(),
+                true
         );
 
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProject(
-            @PathVariable Long id,
-            Authentication authentication
-    ) {
+    public ResponseEntity<Void> deleteProject(@PathVariable Long id, Authentication authentication) {
         String email = authentication.getName();
-
         workspaceAccessService.requireActiveSession(email);
-
         User user = userService.findUserByEmail(email);
-
-        projectService.deleteProject(
-                id,
-                user.getId()
-        );
-
+        projectService.deleteProject(id, user.getId());
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProjectResponse> getProjectById(
-            @PathVariable Long id,
-            Authentication authentication
-    ) {
+    public ResponseEntity<ProjectResponse> getProjectById(@PathVariable Long id, Authentication authentication) {
         String email = authentication.getName();
-
         workspaceAccessService.requireActiveSession(email);
-
         User user = userService.findUserByEmail(email);
 
-        Project project = projectService.getProjectById(
-                id,
-                user.getId()
-        );
+        Project project = projectService.getProjectById(id, user.getId());
 
         ProjectResponse response = new ProjectResponse(
                 project.getId(),
                 project.getName(),
                 project.getDescription(),
                 project.getStatus(),
-                project.getCreatedAt()
+                project.getCreatedAt(),
+                project.getUser().getId().equals(user.getId())
         );
 
         return ResponseEntity.ok(response);

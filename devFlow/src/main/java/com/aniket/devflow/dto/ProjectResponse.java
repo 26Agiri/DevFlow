@@ -7,7 +7,7 @@ public record ProjectResponse(
         String name,
         String description,
         String status,
-        LocalDateTime createdAt
-)
- {
+        LocalDateTime createdAt,
+        boolean owner
+) {
 }

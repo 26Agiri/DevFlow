@@ -81,6 +81,7 @@ public interface TaskRepository
             Long userId,
             Pageable pageable
     );
+List<Long> findDistinctProject_IdByAssignedToId(Long userId);
 
     Optional<Task> findByIdAndProjectIdAndAssignedToId(
             Long taskId,
