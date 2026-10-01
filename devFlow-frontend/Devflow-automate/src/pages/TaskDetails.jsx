@@ -688,12 +688,12 @@ const formatCommentDate = (createdAt) => {
                             item.user?.name ||
                             "User"}
                         </span>
-
-                        {item.createdAt && (
-                          <span className="text-[10px] text-slate-700">
-                          {new Date(item.createdAt).toLocaleString()}
-                          </span>
-                        )}
+                       {item.createdAt && (
+  <span className="text-[10px] text-slate-700">
+    {new Date(item.createdAt).toLocaleString()}
+  </span>
+)}
+                      
                       </div>
 
                       {/* Edit */}
