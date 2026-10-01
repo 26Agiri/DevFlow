@@ -46,7 +46,8 @@ public class ProjectService {
     @Transactional(readOnly = true)
     public List<Project> getProjectsByUser(Long userId) {
         List<Project> ownedProjects = projectRepository.findByUserId(userId);
-        List<Long> assignedProjectIds = taskRepository.findDistinctProject_IdByAssignedToId(userId);
+       List<Long> assignedProjectIds =
+        taskRepository.findDistinctProjectIdsByAssignedToId(userId);
         List<Project> assignedProjects = projectRepository.findAllById(assignedProjectIds);
 
         Map<Long, Project> uniqueProjects = new LinkedHashMap<>();

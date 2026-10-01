@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.aniket.devflow.entity.Task;
 import com.aniket.devflow.entity.TaskPriority;
@@ -81,7 +83,12 @@ public interface TaskRepository
             Long userId,
             Pageable pageable
     );
-List<Long> findDistinctProject_IdByAssignedToId(Long userId);
+@Query("""
+    SELECT DISTINCT t.project.id
+    FROM Task t
+    WHERE t.assignedTo.id = :userId
+""")
+List<Long> findDistinctProjectIdsByAssignedToId(@Param("userId") Long userId);
 
     Optional<Task> findByIdAndProjectIdAndAssignedToId(
             Long taskId,
